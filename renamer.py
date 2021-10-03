@@ -1,7 +1,3 @@
-"""
-    Rename args.filter to args.replace
-    add a new args.filter that will filter out names to rename, based on filename
-"""
 import argparse
 import hashlib
 import json
@@ -29,8 +25,8 @@ def main():
     required_group.add_argument('--recovery', type=str, help='Recovery file to restore filenames')
     parser.add_argument('--recursive', '-r', action='store_true', help='recursively add files')
     parser.add_argument('--filetype', '--ft', type=str, default='*', help='Whitelist filetype. e.g: ".txt .csv". Defaults to *')
-    parser.add_argument('--filter', type=str, help='Regex filter to replace')
-    parser.add_argument('--pattern', type=str, help='Pattern to replace string')
+    parser.add_argument('--replace', type=str, help='Filename string to replace')
+    parser.add_argument('--pattern', type=str, help='Renaming pattern')
     parser.add_argument('--ignore-checksum', dest='ignore_checksum', action='store_true', help='Store checksums when renaming')
     args = parser.parse_args()
 
@@ -45,7 +41,7 @@ def main():
     print(f'{args.folder=}')
     print(f'{args.recursive=}')
     print(f'{args.filetype=}')
-    print(f'{args.filter=}')
+    print(f'{args.replace=}')
     print(f'{args.pattern=}')
     print(f'{args.ignore_checksum=}')
     args.filetype = clean_filetype(args.filetype)
@@ -81,7 +77,7 @@ def parse_recovery_file(args):
         args.folder = data.get("folder")
         args.recursive = data.get("recursive")
         args.filetype = clean_filetype(data.get("filetype"))
-        args.filter = data.get("filter")
+        args.replace = data.get("replace")
         args.pattern = data.get("pattern")
         
         file_changes = []
@@ -102,7 +98,7 @@ def create_recovery_file(args, file_changes):
         'folder': args.folder,
         'recursive': args.recursive,
         'filetype': ' '.join(args.filetype),
-        'filter': args.filter,
+        'replace': args.replace,
         'pattern': args.pattern,
         'file_changes': [obj.to_dict() for obj in file_changes]
     }
@@ -162,10 +158,10 @@ def change_filename(old_filepath, index, args):
     filename = filename[0:-len(extension)]
     path = os.path.dirname(old_filepath)
     
-    if args.filter is None:
+    if args.replace is None:
         filename = args.pattern
     else:
-        filename = filename.replace(args.filter, args.pattern)
+        filename = filename.replace(args.replace, args.pattern)
     
     filename = filename_increment(filename, index)
 
@@ -190,6 +186,9 @@ def change_filename(old_filepath, index, args):
 # Replaces ? in args.pattern and replaces it with incremental numbers, 0-padded for each ?
 def filename_increment(filename, index):
     digits = filename.count('?')
+    if digits <= 0:
+        return filename
+
     loc = filename.find('?')
     padding = digits - len(str(index))
     index_num = index
