@@ -25,7 +25,7 @@ def main():
     required_group.add_argument('--recovery', type=str, help='Recovery file to restore filenames')
     parser.add_argument('--recursive', '-r', action='store_true', help='recursively add files')
     parser.add_argument('--filetype', '--ft', type=str, default='*', help='Whitelist filetype. e.g: ".txt .csv". Defaults to *')
-    parser.add_argument('--filefilter', '--ff', type=str, default='.', help='Whitelist files based on filename, using regex')
+    parser.add_argument('--filefilter', '--ff', type=str, help='Whitelist files based on filename, using regex')
     parser.add_argument('--replace', type=str, help='Filename string to replace')
     parser.add_argument('--pattern', type=str, help='Renaming pattern')
     parser.add_argument('--ignore-checksum', dest='ignore_checksum', action='store_true', help='Store checksums when renaming')
