@@ -25,6 +25,7 @@ def main():
     required_group.add_argument('--recovery', type=str, help='Recovery file to restore filenames')
     parser.add_argument('--recursive', '-r', action='store_true', help='recursively add files')
     parser.add_argument('--filetype', '--ft', type=str, default='*', help='Whitelist filetype. e.g: ".txt .csv". Defaults to *')
+    parser.add_argument('--filefilter', '--ff', type=str, default='*', help='Whitelist files based on filename, using regex')
     parser.add_argument('--replace', type=str, help='Filename string to replace')
     parser.add_argument('--pattern', type=str, help='Renaming pattern')
     parser.add_argument('--ignore-checksum', dest='ignore_checksum', action='store_true', help='Store checksums when renaming')
@@ -41,6 +42,7 @@ def main():
     print(f'{args.folder=}')
     print(f'{args.recursive=}')
     print(f'{args.filetype=}')
+    print(f'{args.filefilter=}')
     print(f'{args.replace=}')
     print(f'{args.pattern=}')
     print(f'{args.ignore_checksum=}')
@@ -135,10 +137,23 @@ def change_files(start_folder, args):
         else:
             extension = os.path.splitext(filepath)[1]
             if check_extension(extension, args.filetype):
-                new_filepath, hash = change_filename(filepath, index, args)
-                file_changes.append(FileChange(new_filepath, filepath, hash))
+                if args.filefilter is not None:
+                    if file_match(file, args.filefilter):
+                        new_filepath, hash = change_filename(filepath, index, args)
+                        file_changes.append(FileChange(new_filepath, filepath, hash))
+                else:
+                    new_filepath, hash = change_filename(filepath, index, args)
+                    file_changes.append(FileChange(new_filepath, filepath, hash))
             index += 1
     return file_changes
+
+# Matches filename to filefilter using regex
+def file_match(file, filefilter):
+    try:
+        s = re.search(filefilter, file)
+        return False if s is None else True
+    except Exception as e:
+        print(e)
 
 # Gets checksum from a file
 def get_hash(file):
