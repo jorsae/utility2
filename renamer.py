@@ -47,7 +47,8 @@ def main():
     print(f'{args.pattern=}')
     print(f'{args.ignore_checksum=}')
     args.filetype = clean_filetype(args.filetype)
-    args.folder = f'{os.getcwd()}{args.folder}'
+    args.folder = f'{os.getcwd()}{args.folder}\\'
+    print(args.folder)
     file_changes = change_files(args.folder, args)
     create_recovery_file(args, file_changes)
 
@@ -133,6 +134,7 @@ def change_files(start_folder, args):
             if args.recursive is False:
                 continue
             if filepath not in folder_searched:
+                print(f'extend: {filepath}')
                 file_changes.extend(change_files(f'{filepath}\\', args))
         else:
             extension = os.path.splitext(filepath)[1]
@@ -140,10 +142,12 @@ def change_files(start_folder, args):
                 if args.filefilter is not None:
                     if file_match(file, args.filefilter):
                         new_filepath, hash = change_filename(filepath, index, args)
+                        print(f'nf: {new_filepath}')
                         file_changes.append(FileChange(new_filepath, filepath, hash))
                 else:
                     new_filepath, hash = change_filename(filepath, index, args)
-                    file_changes.append(FileChange(new_filepath, filepath, hash))
+                    if new_filepath is not None:
+                        file_changes.append(FileChange(new_filepath, filepath, hash))
             index += 1
     return file_changes
 
